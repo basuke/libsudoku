@@ -4,21 +4,29 @@
 
 #pragma once
 
-#include "sudoku.h"
+#include <array>
+#include <string>
+#include <experimental/optional>
+
+using std::array;
+using std::string;
+using std::experimental::optional;
+using std::experimental::nullopt;
 
 namespace sudoku {
 
     class Parser {
     public:
-        explicit Parser(const std::string&);
-        optional<Board> result() const;
+        explicit Parser(const string&);
+        optional<array<int, 9 * 9>> result() const;
 
     private:
-        Board board;
+        array<int, 9 * 9> numbers;
         bool success { };
 
-        bool parse(const std::string&);
+        bool parse(const string&);
     };
 
-    optional<Board> parse(const std::string&);
+
+    optional<array<int, 9 * 9>> parse(const string&);
 }

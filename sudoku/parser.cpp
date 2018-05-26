@@ -3,19 +3,17 @@
 //
 
 #include "parser.h"
-#include <string>
 
 namespace sudoku {
 
-    optional<Board> parse(const std::string& str)
+    optional<array<int, 9 * 9>> parse(const string& str)
     {
         Parser parser { str };
         return parser.result();
     }
 
-    bool Parser::parse(const std::string& str)
+    bool Parser::parse(const string& str)
     {
-        std::array<Number, 81> numbers {};
         size_t count = 0;
 
         std::copy_if(str.begin(), str.end(), numbers.begin(), [&count, size = numbers.size()](char c) {
@@ -28,25 +26,25 @@ namespace sudoku {
             count++;
             return true;
         });
-        std::transform(numbers.begin(), numbers.end(), numbers.begin(), [](Number n) -> Number {
+
+        std::transform(numbers.begin(), numbers.end(), numbers.begin(), [](int n) -> int{
             n -= '0';
             return (n < 0 || n > 9) ? 0 : n;
         });
 
-        board = Board { numbers };
         return true;
 
     }
 
-    Parser::Parser(const std::string& str)
+    Parser::Parser(const string& str)
     {
         success = parse(str);
     }
 
-    optional<Board> Parser::result() const
+    optional<array<int, 9 * 9>> Parser::result() const
     {
         if (success)
-            return board;
+            return numbers;
         else
             return nullopt;
     }

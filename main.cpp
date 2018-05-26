@@ -3,7 +3,7 @@
 #include "sudoku/parser.h"
 #include "sudoku/output.h"
 
-#include <boost/lambda/lambda.hpp>
+using std::vector;
 
 bool isTimingForSeparator(int index)
 {
@@ -11,11 +11,62 @@ bool isTimingForSeparator(int index)
 }
 
 namespace sudoku {
-    optional<Cell> idiot(const Board& board, const Statistics& statistics) {
-        auto emptyCells = board.cells(Cell::isEmpty);
-        assert(!emptyCells.empty());
+    struct Statistics {
+        size_t emptyCount { };
+        bool filled { false };
+        bool valid { true };
+        bool solved { true };
 
-        auto cell = emptyCells[0];
+        explicit Statistics(const Board& board) {
+            auto cells = emptyCells(board);
+            emptyCount = cells.size();
+
+            valid = isValid(board);
+            filled = emptyCount == 0;
+            solved = filled && valid;
+        }
+    };
+
+    class Game {
+    public:
+        explicit Game(Board&& board) : initialBoard(std::move(board)), statistics(Statistics { board }) { };
+
+        Statistics statistics;
+        std::vector<Cell> steps;
+
+        Board currentBoard() const {
+            Board board { initialBoard };
+            for (const auto& step : steps)
+                board = board.put(step);
+            return board;
+        }
+
+        auto put(Cell step) -> vector<Cell>::iterator {
+            auto board = currentBoard().put(step);
+            statistics = Statistics { board };
+            steps.emplace_back(step);
+            return steps.end() - 1;
+        };
+
+        void rollback(vector<Cell>::iterator step) {
+            steps.erase(step, steps.end());
+            statistics = Statistics { currentBoard() };
+        }
+
+    protected:
+        Board initialBoard;
+    };
+
+    using StepFinder = std::function<optional<Cell>(const Board&, const Statistics&)>;
+
+    optional<Cell>find(const Game& game, const vector<StepFinder>& stepFinders);
+    Game solve(Board board, vector<StepFinder>&& stepFinders);
+
+    optional<Cell> idiot(const Board& board, const Statistics& statistics) {
+        auto cells = emptyCells(board);
+        assert(!cells.empty());
+
+        auto cell = *cells.begin();
         cell.number = (rand() % 9) + 1;
         return cell;
     }
@@ -55,45 +106,13 @@ const char* sample = R"(
 3 9 2 | 8 4 7 | 5 1 6
 )";
 
-auto test1() -> decltype(auto) {
-    auto board = *sudoku::parse(sample);
-
-    board = board.erase(board.cells());
-
-    return board;
-}
-
 int main() {
-    Position pos1 { 1, 5 }, pos2 {2, 5};
-    Cell cell1 {pos1 }, cell2 { pos2, 2 };
+    auto numbers = *sudoku::parse(sample);
+    Board board {numbers};
 
-    std::cout << pos1 << " ~ " << pos2 << std::endl;
-    std::cout << vector<Position> { pos1, pos2 } << std::endl;
+    std::cout << board << std::endl;
+//    auto game = sudoku::solve(board, { sudoku::Finder(), sudoku::idiot });
 
-    std::cout << cell1 << " ~ " << cell2 << std::endl;
-    Cells cells;
-    cells.emplace_back(cell1);
-    cells.emplace_back(cell2);
-    std::cout << cells << std::endl;
-
-    auto board = test1();
-
-    auto row = board.row(1);
-    auto column = board.column(2);
-    auto box = board.box({2, 2});
-
-    std::cout << row << std::endl;
-    std::cout << column << std::endl;
-    std::cout << box << std::endl;
-    
-    auto result = row - column;
-    std::cout << result << std::endl;
-
-    // std::cout << board;
-
-    return 0;
-    auto game = sudoku::solve(board, { sudoku::Finder(), sudoku::idiot });
-
-    std::cout << game.currentBoard();
+//    std::cout << game.currentBoard();
     return 0;
 }
