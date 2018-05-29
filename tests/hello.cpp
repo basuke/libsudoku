@@ -1,6 +1,7 @@
 #include "../sudoku/parser.h"
 #include "../sudoku/board.h"
 #include "../sudoku/cell.h"
+#include "../sudoku/operations.h"
 #include "acutest.h"
 
 using namespace std;
@@ -16,11 +17,11 @@ void test_basic() {
     TEST_CHECK(board.cell(1, 1).x() == 1);
     TEST_CHECK(board.cell(5, 6).y() == 6);
     TEST_CHECK(board.row(7).y == 7);
-    TEST_CHECK(contain(board.row(7), Cell(1, 7)));
+    TEST_CHECK(board.row(7).contain(Cell(1, 7)));
     TEST_CHECK(board.column(3).x == 3);
-    TEST_CHECK(contain(board.column(3), Cell{3, 5}));
+    TEST_CHECK(board.column(3).contain(Cell{3, 5}));
     TEST_CHECK(board.box(3, 3).y == 3);
-    TEST_CHECK(contain(board.box(3, 3), Cell{9, 7}));
+    TEST_CHECK(board.box(3, 3).contain(Cell{9, 7}));
 
     TEST_CHECK(board.rows.size() == 9);
     TEST_CHECK(board.columns.size() == 9);

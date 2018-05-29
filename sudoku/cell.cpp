@@ -3,6 +3,7 @@
 //
 
 #include "cell.h"
+#include "operations.h"
 
 namespace sudoku {
 
@@ -79,69 +80,30 @@ namespace sudoku {
         return !(pos < other);
     }
 
-    bool contain(const Cells& cells, const Cell& cell)
+    Cell Cell::with(int number) const
     {
-        return cells.find(cell) != cells.end();
-    }
-
-    Cells add(const Cells& cells, const Cell& cell)
-    {
-        Cells result { cells };
-        result.insert(cell);
-        return result;
-    }
-
-    Cells add(const Cells& cells, const Cells& other)
-    {
-        Cells result { cells };
-        for (const auto& cell : other) {
-            result.insert(cell);
-        }
-        return result;
-    }
-
-    Cells subtract(const Cells& cells, const Cell& cell)
-    {
-        Cells result { cells };
-        result.erase(cell);
-        return result;
-    }
-
-    Cells subtract(const Cells& cells, const Cells& other)
-    {
-        Cells result { cells };
-        for (const auto& cell : other) {
-            result.erase(cell);
-        }
-        return result;
-    }
-
-    Cells cross(const Cells& a, const Cells& b)
-    {
-        return filter(a, [&b](const Cell& cell) {
-            return contain(b, cell);
-        });
-    }
-
-    Cells filter(const Cells& cells, std::function<bool(const Cell&)>&& predicate)
-    {
-        Cells result;
-        for (const auto& cell : cells) {
-            if (predicate(cell))
-                result.insert(cell);
-        }
-        return result;
+        Cell cell { *this };
+        cell.number = number;
+        return cell;
     }
 
     // Cell Predicates
 
-    bool isEmpty(const Cell& cell)
+    bool Cell::isEmpty(const Cell& cell)
     {
         return !cell;
     }
 
-    bool hasNumber(const Cell& cell)
+    bool Cell::hasNumber(const Cell& cell)
     {
         return !!cell;
     }
+
+    std::set<int> numbersInCells(const Cells& cells)
+    {
+        return setOp::transform<Cell, int>(cells, [](const Cell& cell) {
+            return cell.number;
+        });
+    }
+
 };

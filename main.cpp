@@ -1,82 +1,30 @@
 #include <iostream>
 #include "sudoku/sudoku.h"
 #include "sudoku/parser.h"
+#include "sudoku/game.h"
 #include "sudoku/output.h"
 
 using std::vector;
-
-bool isTimingForSeparator(int index)
-{
-    return (index < 9 && (index % 3) == 0);
-}
+using std::cout;
+using std::endl;
 
 namespace sudoku {
-    struct Statistics {
-        size_t emptyCount { };
-        bool filled { false };
-        bool valid { true };
-        bool solved { true };
 
-        explicit Statistics(const Board& board) {
-            auto cells = emptyCells(board);
-            emptyCount = cells.size();
-
-            valid = isValid(board);
-            filled = emptyCount == 0;
-            solved = filled && valid;
-        }
-    };
-
-    class Game {
-    public:
-        explicit Game(Board&& board) : initialBoard(std::move(board)), statistics(Statistics { board }) { };
-
-        Statistics statistics;
-        std::vector<Cell> steps;
-
-        Board currentBoard() const {
-            Board board { initialBoard };
-            for (const auto& step : steps)
-                board = board.put(step);
-            return board;
-        }
-
-        auto put(Cell step) -> vector<Cell>::iterator {
-            auto board = currentBoard().put(step);
-            statistics = Statistics { board };
-            steps.emplace_back(step);
-            return steps.end() - 1;
-        };
-
-        void rollback(vector<Cell>::iterator step) {
-            steps.erase(step, steps.end());
-            statistics = Statistics { currentBoard() };
-        }
-
-    protected:
-        Board initialBoard;
-    };
-
-    using StepFinder = std::function<optional<Cell>(const Board&, const Statistics&)>;
-
-    optional<Cell>find(const Game& game, const vector<StepFinder>& stepFinders);
-    Game solve(Board board, vector<StepFinder>&& stepFinders);
-
-    optional<Cell> idiot(const Board& board, const Statistics& statistics) {
-        auto cells = emptyCells(board);
-        assert(!cells.empty());
-
-        auto cell = *cells.begin();
-        cell.number = (rand() % 9) + 1;
-        return cell;
-    }
-
-    struct Finder {
-        auto operator()(const Board& board, const Statistics& statistics) -> optional<Cell> {
-            return nullopt;
-        }
-    };
 };
+
+const char* easy1 = R"(
+. 6 . | 1 . 2 | . 3 .
+7 . 8 | . 6 . | 9 . 2
+. 1 . | 9 . 8 | . 7 .
+------+-------+------
+2 . 6 | . 4 . | 1 . 3
+. 9 . | 6 . 7 | . 8 .
+1 . 4 | . 9 . | 7 . 5
+------+-------+------
+. 2 . | 5 . 1 | . 4 .
+9 . 5 | . 3 . | 8 . 1
+. 3 . | 4 . 9 | . 5 .
+)";
 
 const char* hard = R"(
 . . . | . 6 . | 2 . .
@@ -106,13 +54,94 @@ const char* sample = R"(
 3 9 2 | 8 4 7 | 5 1 6
 )";
 
+struct LastNumberInRegion {
+    auto operator()(const Board& board, const Statistics& statistics) -> optional<Cell> {
+        for (const auto& box : board.boxes) {
+            if (auto step = lastNumberInRegion(box))
+                return step;
+        }
+
+        for (const auto& row : board.rows) {
+            if (auto step = lastNumberInRegion(row))
+                return step;
+        }
+
+        for (const auto& column : board.columns) {
+            if (auto step = lastNumberInRegion(column))
+                return step;
+        }
+
+        return nullopt;
+    }
+
+    optional<Cell> lastNumberInRegion(const Region& region) {
+        auto cells = region.availableCells();
+        auto numbers = region.availableNumbers();
+
+        if (cells.size() == 1 && numbers.size() == 1)
+            return (*cells.begin()).with(*numbers.begin());
+
+        return nullopt;
+    }
+
+};
+
+struct CellInBoxScreenedByRowsAndColumns {
+    auto operator()(const Board& board, const Statistics& statistics) -> optional<Cell> {
+        for (auto number : allNumbers()) {
+            for (const auto &box : board.boxes) {
+                if (!box.contain(number)) {
+                    if (auto cell = find(box, number))
+                        return cell;
+                }
+            }
+        }
+        return nullopt;
+    }
+
+    optional<Cell> find(const BoundBox& box, int number)
+    {
+        auto cells = box.availableCells();
+
+        for (const auto& row : box.rows()) {
+            if (row.contain(number))
+                cells = setOp::subtract(cells, row.cells);
+        }
+
+//        for (auto row : box.columns()) {
+//            cells = setOp::subtract(cells, row.cells);
+//        }
+
+        if (cells.size() == 1)
+            return *(cells.begin());
+
+        return nullopt;
+    }
+};
+
+optional<Cell> finderFunc(const Board& board, const Statistics& statistics) {
+    return nullopt;
+}
+
+struct FinderClass {
+    auto operator()(const Board& board, const Statistics& statistics) -> optional<Cell> {
+        return nullopt;
+    }
+};
+
 int main() {
-    auto numbers = *sudoku::parse(sample);
+    auto numbers = *sudoku::parse(easy1);
     Board board {numbers};
 
-    std::cout << board << std::endl;
-//    auto game = sudoku::solve(board, { sudoku::Finder(), sudoku::idiot });
+    Game game {board};
 
-//    std::cout << game.currentBoard();
+    std::cout << board << std::endl;
+    auto game2 = sudoku::solve(board, {
+        FinderClass(),
+        LastNumberInRegion(),
+        CellInBoxScreenedByRowsAndColumns(),
+    });
+
+    std::cout << game2.currentBoard();
     return 0;
 }

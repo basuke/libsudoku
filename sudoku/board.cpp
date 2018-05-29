@@ -4,6 +4,7 @@
 
 #include "board.h"
 #include "utils.h"
+#include "operations.h"
 
 namespace sudoku {
 
@@ -38,8 +39,8 @@ namespace sudoku {
     }
 
     Board::Board(Cells&& cells)
+            : cells { std::move(cells) }
     {
-        cells = std::move(cells);
         build();
     }
 
@@ -103,7 +104,7 @@ namespace sudoku {
             std::transform(r.begin(), r.end(), back_inserter(positions), [y](int x) {
                 return Position {x, y};
             });
-            rows.emplace_back(Row {y, collectCells(positions)});
+            rows.emplace_back(BoundRow {this, y, collectCells(positions)});
         }
 
         for (auto x : r) {
@@ -111,7 +112,7 @@ namespace sudoku {
             std::transform(r.begin(), r.end(), back_inserter(positions), [x](int y) {
                 return Position {x, y};
             });
-            columns.emplace_back(Column {x, collectCells(positions)});
+            columns.emplace_back(BoundColumn {this, x, collectCells(positions)});
         }
 
         auto r2 = range(0, 2);
@@ -130,7 +131,7 @@ namespace sudoku {
                     }
                 }
 
-                boxes.emplace_back(Box {x0 + 1, y0 + 1, collectCells(positions)});
+                boxes.emplace_back(BoundBox {this, x0 + 1, y0 + 1, collectCells(positions)});
             }
         }
     }
@@ -160,19 +161,19 @@ namespace sudoku {
         return cellAt({x, y});
     }
 
-    const Row& Board::row(int y) const
+    const BoundRow& Board::row(int y) const
     {
         assert(y >= 1 && y <= 9);
         return rows[y - 1];
     }
 
-    const Column& Board::column(int x) const
+    const BoundColumn& Board::column(int x) const
     {
         assert(x >= 1 && x <= 9);
         return columns[x - 1];
     }
 
-    const Box& Board::box(int x, int y) const
+    const BoundBox& Board::box(int x, int y) const
     {
         return boxes[boxIndex(x, y)];
     }
@@ -185,4 +186,33 @@ namespace sudoku {
         return Board {std::move(cells)};
     }
 
+    bool Board::isValid() const
+    {
+        for (const auto& row : rows) {
+            if (!row.isValid())
+                return false;
+        }
+
+        for (const auto& column : columns) {
+            if (!column.isValid())
+                return false;
+        }
+
+        for (const auto& box : boxes) {
+            if (!box.isValid())
+                return false;
+        }
+
+        return true;
+    }
+
+    Cells Board::availableCells() const
+    {
+        return setOp::filter<Cell>(cells, Cell::isEmpty);
+    }
+
+    Cells Board::filledCells() const
+    {
+        return setOp::filter<Cell>(cells, Cell::hasNumber);
+    }
 }

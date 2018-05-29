@@ -10,6 +10,10 @@
 
 namespace sudoku {
 
+    using std::function;
+    using std::set;
+    using std::vector;
+
     class Cell {
         Position pos;
 
@@ -54,24 +58,20 @@ namespace sudoku {
         explicit operator bool() const { return number > 0; }
 
         const Position& position() const;
+
+        Cell with(int number) const;
+
+        // Predicates
+
+        static bool isEmpty(const Cell& cell);
+        static bool hasNumber(const Cell& cell);
     };
 
-    using Cells = std::set<Cell>;
+    using Cells = set<Cell>;
+    using CellPredicate = function<bool(const Cell&)>;
 
-    bool contain(const Cells& cells, const Cell& cell);
+    set<int> numbersInCells(const Cells& cells);
 
-    Cells add(const Cells& cells, const Cell& cell);
-    Cells add(const Cells& cells, const Cells& other);
-    Cells subtract(const Cells& cells, const Cell& cell);
-    Cells subtract(const Cells& cells, const Cells& other);
-    Cells cross(const Cells& a, const Cells& b);
-
-    using CellPredicate = std::function<bool(const Cell&)>;
-
-    Cells filter(const Cells& cells, CellPredicate&& predicate);
-
-    bool isEmpty(const Cell& cell);
-    bool hasNumber(const Cell& cell);
 };
 
 

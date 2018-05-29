@@ -5,25 +5,52 @@
 #pragma once
 
 #include "cell.h"
+#include "operations.h"
 
 namespace sudoku {
 
+    using std::vector;
+
+    class Board;
+    
     class Region {
     public:
         Cells cells;
 
         const Cell& cell(int n) const;
 
+        bool isValid() const;
+        bool contain(const Cell& cell) const;
+        bool contain(int number) const;
+        Cells overlap(const Cells &cells) const;
+
+        set<int> numbers() const;
+        set<int> availableNumbers() const;
+
+        Cells availableCells() const;
+        Cells filledCells() const;
+
     protected:
-        explicit Region(Cells&& cells) : cells(std::move(cells)) {}
+        explicit Region(Cells&& cells) : cells(move(cells)) {}
     };
 
+    class WithBoard {
+    public:
+        explicit WithBoard(const Board* board) : board { board } {}
+
+        WithBoard(const WithBoard&) = default;
+        WithBoard& operator=(const WithBoard& other) = default;
+        
+    protected:
+        const Board* board;
+    };
+    
     struct Row : public Region {
         const char* kind() const { return "Row"; };
 
         int y;
 
-        Row(int y, Cells&& cells) : Region(std::move(cells)), y(y) {}
+        Row(int y, Cells&& cells) : Region(move(cells)), y(y) {}
     };
 
     struct Column : public Region {
@@ -31,7 +58,7 @@ namespace sudoku {
 
         int x;
 
-        Column (int x, Cells&& cells) : Region(std::move(cells)), x(x) {}
+        Column (int x, Cells&& cells) : Region(move(cells)), x(x) {}
     };
 
     struct Box : public Region {
@@ -40,43 +67,23 @@ namespace sudoku {
         int x;
         int y;
 
-        Box(int x, int y, Cells&& cells) : Region(std::move(cells)), x(x), y(y) {}
+        Box(int x, int y, Cells&& cells) : Region(move(cells)), x(x), y(y) {}
     };
 
-    template<typename T>
-    bool contain(const T& region, const Cell& cell)
-    {
-        return contain(region.cells, cell);
-    }
+    struct BoundRow : public Row, public WithBoard {
+        BoundRow(const Board* board, int y, Cells&&cells);
+    };
 
-    template<typename T1, typename T2>
-    Cells subtract(const T1& a, const T2& b)
-    {
-        return subtract(a.cells, b.cells);
-    }
+    struct BoundColumn : public Column, public WithBoard {
+        BoundColumn(const Board* board, int x, Cells&&cells);
+    };
 
-    template<typename T>
-    Cells emptyCells(T region)
-    {
-        return filter(region.cells, isEmpty);
-    }
+    struct BoundBox : public Box, public WithBoard {
+        BoundBox(const Board* board, int x, int y, Cells&&cells);
 
-    template<typename T>
-    Cells numberCells(T region)
-    {
-        return filter(region.cells, hasNumber);
-    }
+        vector<BoundRow> rows() const;
+        vector<BoundColumn> columns() const;
+    };
 
-    template<typename T>
-    bool isValid(T region)
-    {
-        const auto& cells = numberCells(region);
-        std::set<int> numbers;
-
-        for (const auto& cell : cells)
-            numbers.insert(cell.number);
-
-        return cells.size() == numbers.size();
-    }
-
+    set<int> allNumbers();
 }

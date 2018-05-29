@@ -3,7 +3,13 @@
 
 namespace sudoku {
 
-    static char numchar(int c) { return '0' + static_cast<char>(c); }
+    static char numchar(int c)
+    {
+        if (!c)
+            return '.';
+
+        return '0' + static_cast<char>(c);
+    }
 
     template<typename C>
     static std::string join(const C& items, const std::string& delimiter)
@@ -16,7 +22,13 @@ namespace sudoku {
         });
 
 //        auto result = "[" + boost::algorithm::join(itemStrs, delimiter) + "]";
-        return "[...]";
+        std::string result;
+        for (auto p = items.begin(); p != items.end(); ++p) {
+            result += (p == items.begin()) ? "[" : ", ";
+            result += stringify(*p);
+        }
+        result += "]";
+        return result;
     }
 
     template<typename R>

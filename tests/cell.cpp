@@ -1,4 +1,5 @@
 #include "../sudoku/cell.h"
+#include "../sudoku/operations.h"
 #include "acutest.h"
 #include <set>
 #include <array>
@@ -103,8 +104,8 @@ void test_cells() {
     cells.insert(cell3);
     TEST_CHECK(cells.size() == 3);
 
-    TEST_CHECK(contain(cells, cell2));
-    TEST_CHECK(!contain(cells, Cell{3, 3}));
+    TEST_CHECK(setOp::contain(cells, cell2));
+    TEST_CHECK(!setOp::contain(cells, Cell{3, 3}));
 
     // Test copy constructor
     Cells result2{cells};
@@ -116,19 +117,19 @@ void test_cellsOperation()
     Cells cells { {1, 1, 5}, {2, 1}, {3, 1}};
 
     // Test add
-    Cells result = add(cells, cells);
+    Cells result = setOp::add(cells, cells);
     TEST_CHECK(cells == result);
 
-    result = add(cells, Cell { 3, 3});
+    result = setOp::add(cells, Cell { 3, 3});
     TEST_CHECK(result.size() == 4);
-    TEST_CHECK(contain(result, Cell { 3, 3}));
+    TEST_CHECK(setOp::contain(result, Cell { 3, 3}));
 
     // Test subtract
-    result = subtract(cells, Cell {3, 3});
+    result = setOp::subtract(cells, Cell {3, 3});
     TEST_CHECK(result.size() == 3);
     TEST_CHECK(cells == result);
 
-    result = subtract(result, cells);
+    result = setOp::subtract(result, cells);
     TEST_CHECK(result.size() == 0);
 }
 
