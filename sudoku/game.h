@@ -20,7 +20,7 @@ namespace sudoku {
         explicit Game(const Board& board);
 
         Statistics statistics;
-        std::vector<Cell> steps;
+        vector<Cell> steps;
 
         Board currentBoard() const;
 

@@ -24,8 +24,8 @@ namespace sudoku {
         bool contain(int number) const;
         Cells overlap(const Cells &cells) const;
 
-        set<int> numbers() const;
-        set<int> availableNumbers() const;
+        vector<int> numbers() const;
+        vector<int> availableNumbers() const;
 
         Cells availableCells() const;
         Cells filledCells() const;
@@ -85,5 +85,5 @@ namespace sudoku {
         vector<BoundColumn> columns() const;
     };
 
-    set<int> allNumbers();
+    vector<int> allNumbers();
 }

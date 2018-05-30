@@ -8,7 +8,7 @@ ostream& operator<<(ostream& os, const Position& position)
     return os;
 }
 
-ostream& operator<<(ostream& os, const set<Position>& positions)
+ostream& operator<<(ostream& os, const vector<Position>& positions)
 {
     os << stringify(positions);
     return os;

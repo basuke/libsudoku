@@ -5,13 +5,11 @@
 #pragma once
 
 #include <algorithm>
-#include <set>
 #include <functional>
 #include <experimental/optional>
 
 
 namespace sudoku {
-    using std::set;
     using std::vector;
     using std::function;
     using std::experimental::optional;
@@ -20,80 +18,115 @@ namespace sudoku {
 
 namespace sudoku::setOp {
 
-    using std::set;
+    using std::vector;
     using std::function;
 
-    template<typename T>
-    bool contain(const set<T>& src, const T& item)
+    template <typename T>
+    vector<T> range(T start, int stop, int step = 0)
     {
-        return src.find(item) != src.end();
+        if (step == 0) {
+            step = start <= stop ? 1 : - 1;
+        }
+
+        vector<T> result;
+        if (step > 0) {
+            for (int i = start; i <= stop; i += step)
+                result.emplace_back(i);
+        } else {
+            for (int i = start; i >= stop; i += step)
+                result.emplace_back(i);
+        }
+        return result;
     }
 
     template<typename T>
-    set<T> filter(const set<T>& src, function<bool(const T& item)> predicate)
+    bool contain(const vector<T>& src, const T& item)
     {
-        set<T> result;
+        return std::find(src.begin(), src.end(), item) != src.end();
+    }
+
+    template<typename T>
+    void forEach(vector<T>& vec, function<void(T&)>&& task)
+    {
+        for (auto& item : vec) {
+            task(item);
+        }
+    };
+
+    template<typename T>
+    vector<T> filter(const vector<T>& src, function<bool(const T& item)>&& predicate)
+    {
+        vector<T> result;
         for (const auto& item : src) {
             if (predicate(item))
-                result.insert(item);
+                result.emplace_back(item);
         }
         return result;
     };
 
     template<typename T1, typename T2>
-    set<T2> transform(const set<T1>& src, function<T2(const T1& item)> transformer)
+    vector<T2> map(const vector<T1>& vec, function<T2(const T1& item)>&& transformer)
     {
-        set<T2> result;
-        for (const auto& item : src) {
-            result.insert(transformer(item));
+        vector<T2> result;
+        for (const auto& item : vec) {
+            result.emplace_back(transformer(item));
         }
         return result;
     };
 
     template<typename T>
-    set<T> add(const set<T>& src, const set<T>& other)
+    void add(vector<T>& vec, const vector<T>& other)
     {
-        set<T> result { src };
         for (const auto& item : other) {
-            result.insert(item);
+            if (!contain(vec, item))
+                vec.emplace_back(item);
         }
+        std::sort(vec.begin(), vec.end());
+    }
+
+    template<typename T>
+    vector<T> merged(const vector<T>& src, const vector<T>& other)
+    {
+        vector<T> result { src };
+        add(result, other);
         return result;
     }
 
     template<typename T>
-    set<T> add(const set<T>& src, const T& item)
+    void subtract(vector<T>& vec, const vector<T>& other)
     {
-        set<T> result { src };
-        result.insert(item);
-        return result;
-    }
-
-    template<typename T>
-    set<T> subtract(const set<T>& src, const set<T>& other)
-    {
-        set<T> result { src };
-        for (const auto& item : other) {
-            result.erase(item);
+        vector<T> result { };
+        for (const auto& item : vec) {
+            if (!contain(other, item))
+                result.emplace_back(item);
         }
+        vec = std::move(result);
+    }
+
+    template<typename T>
+    vector<T> difference(const vector<T>& src, const vector<T>& other)
+    {
+        vector<T> result { src };
+        subtract(result, other);
         return result;
     }
 
     template<typename T>
-    set<T> subtract(const set<T>& src, const T& item)
+    void product(vector<T>& vec, const vector<T>& other)
     {
-        set<T> result { src };
-        result.erase(item);
-        return result;
-    }
-
-    template<typename T>
-    set<T> overlap(const set<T> &src, const set<T> &other)
-    {
-        set<T> result { };
-        for (const auto& item : other) {
-            if (contain(src, item))
-                result.insert(item);
+        vector<T> result { };
+        for (const auto& item : vec) {
+            if (contain(other, item))
+                result.emplace_back(item);
         }
+        vec = std::move(result);
+    }
+
+    template<typename T>
+    vector<T> overlapped(const vector<T> &src, const vector<T> &other)
+    {
+        vector<T> result { src };
+        product(result, other);
         return result;
     }
 

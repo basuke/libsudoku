@@ -18,7 +18,7 @@ void test_basic()
 
     Column col1 {2, {{2, 1, 5}, {2, 2}, {2, 3, 9}}};
 
-    auto result = setOp::subtract(row1.cells, col1.cells);
+    auto result = setOp::difference(row1.cells, col1.cells);
     TEST_CHECK(result.size() == 2);
     TEST_CHECK(setOp::contain(result, Cell {1, 1, 1}));
     TEST_CHECK(setOp::contain(result, Cell {3, 1}));
@@ -27,7 +27,7 @@ void test_basic()
     auto n = col1.filledCells();
     TEST_CHECK(e.size() == 1);
     TEST_CHECK(n.size() == 2);
-    TEST_CHECK(setOp::add(e, n) == col1.cells);
+    TEST_CHECK(setOp::merged(e, n) == col1.cells);
 }
 
 void test_isValid()

@@ -105,17 +105,19 @@ struct CellInBoxScreenedByRowsAndColumns {
 
         for (const auto& row : box.rows()) {
             if (row.contain(number))
-                cells = setOp::subtract(cells, row.cells);
+                setOp::subtract(cells, row.cells);
         }
 
 //        for (auto row : box.columns()) {
 //            cells = setOp::subtract(cells, row.cells);
 //        }
 
-        if (cells.size() == 1)
-            return *(cells.begin());
+        if (cells.size() != 1)
+            return nullopt;
 
-        return nullopt;
+        auto step = *(cells.begin());
+        step.number = number;
+        return step;
     }
 };
 

@@ -5,13 +5,12 @@
 #pragma once
 
 #include "position.h"
-#include <set>
 #include <vector>
+#include <functional>
 
 namespace sudoku {
 
     using std::function;
-    using std::set;
     using std::vector;
 
     class Cell {
@@ -67,10 +66,10 @@ namespace sudoku {
         static bool hasNumber(const Cell& cell);
     };
 
-    using Cells = set<Cell>;
+    using Cells = vector<Cell>;
     using CellPredicate = function<bool(const Cell&)>;
 
-    set<int> numbersInCells(const Cells& cells);
+    vector<int> numbersInCells(const Cells& cells);
 
 };
 

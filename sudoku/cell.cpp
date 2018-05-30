@@ -99,9 +99,9 @@ namespace sudoku {
         return !!cell;
     }
 
-    std::set<int> numbersInCells(const Cells& cells)
+    vector<int> numbersInCells(const Cells& cells)
     {
-        return setOp::transform<Cell, int>(cells, [](const Cell& cell) {
+        return setOp::map<Cell, int>(cells, [](const Cell& cell) {
             return cell.number;
         });
     }

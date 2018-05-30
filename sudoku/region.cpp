@@ -3,7 +3,6 @@
 //
 
 #include "region.h"
-#include "utils.h"
 #include "operations.h"
 #include "board.h"
 
@@ -11,8 +10,7 @@ namespace sudoku {
 
     const Cell& Region::cell(int n) const
     {
-        auto temp = setToVector(cells);
-        return temp[n - 1];
+        return cells[n - 1];
     }
 
     bool Region::isValid() const {
@@ -31,17 +29,17 @@ namespace sudoku {
 
     Cells Region::overlap(const Cells &cells) const
     {
-        return setOp::overlap(this->cells, cells);
+        return setOp::overlapped(this->cells, cells);
     }
 
-    set<int> Region::numbers() const
+    vector<int> Region::numbers() const
     {
         return numbersInCells(filledCells());
     }
 
-    set<int> Region::availableNumbers() const
+    vector<int> Region::availableNumbers() const
     {
-        return setOp::subtract(allNumbers(), numbers());
+        return setOp::difference(allNumbers(), numbers());
     }
 
     Cells Region::availableCells() const
@@ -76,6 +74,7 @@ namespace sudoku {
     {
         vector<BoundRow> result;
         for (const auto& row : board->rows) {
+
             if (!row.overlap(cells).empty())
                 result.emplace_back(row);
         }
@@ -104,7 +103,7 @@ namespace sudoku {
 //        });
     }
 
-    set<int> allNumbers()
+    vector<int> allNumbers()
     {
         return { 1, 2, 3, 4, 5, 6, 7, 8, 9 };
     }

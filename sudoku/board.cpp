@@ -3,7 +3,6 @@
 //
 
 #include "board.h"
-#include "utils.h"
 #include "operations.h"
 
 namespace sudoku {
@@ -14,7 +13,7 @@ namespace sudoku {
         Cells cells;
         for (int y = 1; y <= 9; y++) {
             for (int x = 1; x <= 9; x++) {
-                cells.insert(Cell {x, y, *(p++)});
+                cells.emplace_back(Cell {x, y, *(p++)});
             }
         }
         return cells;
@@ -97,7 +96,7 @@ namespace sudoku {
         columns.clear();
         boxes.clear();
 
-        auto r = range(1, 9);
+        auto r = allNumbers();
 
         for (auto y : r) {
             std::vector<Position> positions;
@@ -115,7 +114,7 @@ namespace sudoku {
             columns.emplace_back(BoundColumn {this, x, collectCells(positions)});
         }
 
-        auto r2 = range(0, 2);
+        auto r2 = setOp::range(0, 2);
 
         for (auto y0 : r2) {
             auto startY = y0 * 3;
@@ -123,10 +122,10 @@ namespace sudoku {
             for (auto x0 : r2) {
                 auto startX = x0 * 3;
 
-                std::vector<Position> positions;
+                vector<Position> positions;
 
-                for (auto y : range(startY + 1, startY + 3)) {
-                    for (auto x : range(startX + 1, startX + 3)) {
+                for (auto y : setOp::range(startY + 1, startY + 3)) {
+                    for (auto x : setOp::range(startX + 1, startX + 3)) {
                         positions.emplace_back(Position {x, y});
                     }
                 }
@@ -136,9 +135,9 @@ namespace sudoku {
         }
     }
 
-    Cells Board::collectCells(const std::vector<Position>& positions) const
+    Cells Board::collectCells(const vector<Position>& positions) const
     {
-        std::vector<Cell> result;
+        Cells result;
 
         std::transform(positions.begin(),
                        positions.end(),
@@ -147,12 +146,12 @@ namespace sudoku {
                            return cellAt(position);
                        });
 
-        return vectorToSet(result);
+        return result;
     }
 
     const Cell& Board::cellAt(const Position& position) const
     {
-        auto found = cells.find(Cell { position });
+        auto found = find(cells.begin(), cells.end(), Cell { position });
         return *found;
     }
 
@@ -181,8 +180,9 @@ namespace sudoku {
     Board Board::put(Cell step) const
     {
         Cells cells = this->cells;
-        cells.erase(step);
-        cells.insert(step);
+        auto pos = std::find(cells.begin(), cells.end(), step);
+        *pos = step;
+
         return Board {std::move(cells)};
     }
 

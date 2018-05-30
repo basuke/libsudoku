@@ -12,17 +12,16 @@ namespace sudoku {
     }
 
     template<typename C>
-    static std::string join(const C& items, const std::string& delimiter)
+    static string join(const C& items, const string& delimiter)
     {
         using T = typename C::value_type;
-        std::vector<std::string> itemStrs;
+        vector<string> itemStrs;
 
         std::transform(items.begin(), items.end(), std::back_inserter(itemStrs), [](const T& item) {
             return stringify(item);
         });
 
-//        auto result = "[" + boost::algorithm::join(itemStrs, delimiter) + "]";
-        std::string result;
+        string result;
         for (auto p = items.begin(); p != items.end(); ++p) {
             result += (p == items.begin()) ? "[" : ", ";
             result += stringify(*p);
@@ -32,9 +31,9 @@ namespace sudoku {
     }
 
     template<typename R>
-    static std::string stringifyRegionBody(const R& region)
+    static string stringifyRegionBody(const R& region)
     {
-        std::string result;
+        string result;
         
         result += "|";
 
@@ -50,9 +49,9 @@ namespace sudoku {
         return result;
     }
 
-    std::string stringify(const Position& position)
+    string stringify(const Position& position)
     {
-        std::string result;
+        string result;
         
         result = '(';
         result += numchar(position.x);
@@ -63,14 +62,14 @@ namespace sudoku {
         return result;
     }
 
-    std::string stringify(const std::set<Position>& positions)
+    string stringify(const vector<Position>& positions)
     {
         return join(positions, ", ");
     }
 
-    std::string stringify(const Cell& cell)
+    string stringify(const Cell& cell)
     {
-        std::string result;
+        string result;
 
         result = '(';
         result += numchar(cell.x());
@@ -87,14 +86,14 @@ namespace sudoku {
         return result;
     }
 
-    std::string stringify(const Cells& cells)
+    string stringify(const Cells& cells)
     {
         return join(cells, ", ");
     }
 
-    std::string stringify(const Row& row)
+    string stringify(const Row& row)
     {
-        std::string result { row.kind() };
+        string result { row.kind() };
 
         result += " [";
         result += numchar(row.y);
@@ -104,9 +103,9 @@ namespace sudoku {
         return result;
     }
 
-    std::string stringify(const Column& column)
+    string stringify(const Column& column)
     {
-        std::string result { column.kind() };
+        string result { column.kind() };
 
         result += " [";
         result += numchar(column.x);
@@ -116,9 +115,9 @@ namespace sudoku {
         return result;
     }
 
-    std::string stringify(const Box& box)
+    string stringify(const Box& box)
     {
-        std::string result { box.kind() };
+        string result { box.kind() };
 
         result += " [";
         result += numchar(box.x);
@@ -130,9 +129,9 @@ namespace sudoku {
         return result;
     }
 
-    std::string stringify(const Board& board)
+    string stringify(const Board& board)
     {
-        std::string result;
+        string result;
 
         const auto firstRow = board.row(1);
 
